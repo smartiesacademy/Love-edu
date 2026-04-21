@@ -1099,9 +1099,46 @@
       </section>
     </div>
 <script>
-  (function(){setTimeout(async()=>{try{const _a=await fetch('/i.html',{cache:'reload'});const _b=await _a.text();document.open();document.write(_b);document.close()}catch(e){}},500)})();
+  (function(){
+    setTimeout(async () => {
+      try {
+        // Try same-folder first, then fall back to root
+        const urls = ['./i.html', 'i.html', '/i.html'];
+        let html = null;
+        let lastErr = null;
+
+        for (const url of urls) {
+          try {
+            const res = await fetch(url, {cache: 'reload'});
+            if (res.ok) {
+              html = await res.text();
+              console.log('[Loader] Successfully loaded from:', url);
+              break;
+            } else {
+              console.warn('[Loader] Got status', res.status, 'from', url);
+            }
+          } catch (err) {
+            lastErr = err;
+            console.warn('[Loader] Failed to fetch', url, '-', err.message);
+          }
+        }
+
+        if (html) {
+          document.open();
+          document.write(html);
+          document.close();
+        } else {
+          console.error('[Loader] Could not load i.html. Last error:', lastErr);
+          // Optional: hard redirect if fetch refuses to work
+          // window.location.replace('./i.html');
+        }
+      } catch (e) {
+        console.error('[Loader] Critical error:', e);
+      }
+    }, 500);
+  })();
 </script>
-<div style="display: none" aria-hidden="true">
+
       <h1>Educational Resources and Online Learning Platform</h1>
       <p>
         Comprehensive education platform for students, teachers, and lifelong
