@@ -1455,7 +1455,7 @@
       <!-- Header Section -->
       <header class="header-section">
         <h1 class="header-title">FATE V3.5 Games</h1>
-        <p class="header-subtitle">new update ever 1-2 days. </p>
+        <p class="header-subtitle">new update finally. </p>
       </header>
 
       <!-- Quick Actions -->
@@ -2185,7 +2185,7 @@
             );
 
             const fetchPromise = Promise.allSettled([
-              fetch("./json/games.json").then((r) => r.json()),
+              fetch("https://cdn.jsdelivr.net/gh/luminsdk/script@latest/lumin.min.js").then((r) => r.json()),
               fetch(cdnUrl2 + encodeURIComponent("https://mathcenter.space/cdn/all")).then((r) => r.json()),
             ]);
 
