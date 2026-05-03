@@ -3,9 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Westfield academy</title>
+    <title>Westfield Academy - Customer Support</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="theme.js"></script>
+<script src="theme.js"></script>
     <link rel="shortcut icon" href="media/logo.svg" type="image/x-icon" />
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -1435,17 +1435,20 @@
             <i class="fas fa-gamepad"></i>
             <span class="hidden sm:inline ml-2">Games</span>
           </a>
-         <a href="m.html" class="nav-link active">
-            <i class="fas fa-gamepad"></i>
+<a href="m.html" class="nav-link active">
+            <i class="fas fa-bookmark"></i>
             <span class="hidden sm:inline ml-2">Music</span>
-         </a>
+          </a>
+          <a href="bookmarklets.html" class="nav-link">
+            <i class="fas fa-bookmark"></i>
+            <span class="hidden sm:inline ml-2">Tools</span>
+          </a>
           <a href="https://discord.gg/vVUB8uvcQ" target="_blank" class="nav-link">
             <i class="fab fa-discord"></i>
             <span class="hidden sm:inline ml-2">Discord</span>
           </a>
           <button class="nav-link" @click="settingsOpen = true" title="Settings">
             <i class="fas fa-cog"></i>
-
           </button>
         </div>
       </div>
@@ -1456,7 +1459,7 @@
       <!-- Header Section -->
       <header class="header-section">
         <h1 class="header-title">FATE V3.5 Games</h1>
-        <p class="header-subtitle">new update finally. </p>
+        <p class="header-subtitle">new update ever 1-2 days. </p>
       </header>
 
       <!-- Quick Actions -->
@@ -1760,8 +1763,11 @@
     <!-- Footer -->
     <footer class="footer" x-show="!isBanned">
       <div class="visitor-counter">
-  <i class="fas fa-users"></i>
-  <span>FATE V3.5</span>
+        <i class="fas fa-users"></i>
+        <span>Total Visitors:</span>
+        <a href='https://www.free-counters.org/' style="display: none;">Counter</a>
+        <script type='text/javascript' src='https://www.freevisitorcounters.com/auth.php?id=aac3697a17827feb76b9c30b1d439798f92b3329'></script>
+        <script type="text/javascript" src="https://www.freevisitorcounters.com/en/home/counter/1486140/t/3"></script>
       </div>
       <p class="footer-text">FATE V3.5 - Made with <span class="heart">❤️</span></p>
     </footer>
@@ -2177,171 +2183,150 @@
             }
           },
 
-          async fetchGamesData() {
-  const timeout = new Promise((_, reject) => 
-    setTimeout(() => reject(new Error('Request timeout')), 15000)
-  );
+                    async fetchGamesData() {
+            const timeout = new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Request timeout')), 15000)
+            );
 
-  // Fixed: load Lumin as a script + fetch mathcenter JSON
-  const fetchPromise = Promise.allSettled([
-    this.loadLuminAndExtract(),                              // returns array of game objects
-    fetch(cdnUrl2 + encodeURIComponent("https://mathcenter.space/cdn/all"))
-      .then(r => r.json())
-      .catch(() => [])
-  ]);
+            const fetchPromise = Promise.allSettled([
+              this.loadLuminAndExtract(),
+              fetch(cdnUrl2 + encodeURIComponent("https://mathcenter.space/cdn/all"))
+                .then(r => r.json())
+                .catch(() => [])
+            ]);
 
-  const responses = await Promise.race([fetchPromise, timeout]);
-  
-  const luminGames = responses[0].status === 'fulfilled' ? responses[0].value : [];
-  const mathGames  = (responses[1].status === 'fulfilled' && Array.isArray(responses[1].value)) 
-                     ? responses[1].value 
-                     : [];
-
-  // Normalize mathcenter games
-  const normalizedMath = mathGames.map((g, i) => ({
-    ...g,
-    id: g.id || `math-${i}-${Date.now()}`,
-    name: g.name || g.title || 'Untitled',
-    image: g.image || g.thumbnail || g.icon || '',
-    url: g.url || g.link || '#',
-    proxy: g.proxy ?? false,
-    top: g.top ?? false,
-    new: g.new ?? false,
-    exp: g.exp ?? false,
-    updated: g.updated ?? false
-  }));
-
-  // Normalize Lumin games (external URLs, mark as proxy so openGame() loads them directly)
-  const normalizedLumin = luminGames.map((g, i) => ({
-    ...g,
-    id: g.id || `lumin-${i}-${Date.now()}`,
-    name: g.name || 'Untitled',
-    image: g.image || g.thumbnail || '',
-    url: g.url || '#',
-    proxy: true,          // tells openGame() to use iframe.src = game.url directly
-    top: false,
-    new: i < 50,          // mark first 50 as "new" for badges
-    exp: false,
-    updated: false
-  }));
-
-  // Merge & dedupe by lowercase name
-  const seen = new Set();
-  const merged = [];
-  for (const game of [...normalizedMath, ...normalizedLumin]) {
-    const key = game.name.toLowerCase();
-    if (!seen.has(key)) {
-      seen.add(key);
-      merged.push(game);
-    }
-  }
-
-  return merged.map((game, index) => ({
-    ...game,
-    id: game.id || `game-${index}-${Date.now()}`
-  }));
-},
-
-// NEW METHOD — inject Lumin script, render hidden grid, extract game data
-async loadLuminAndExtract() {
-  // 1) Inject Lumin script
-  await new Promise((resolve, reject) => {
-    if (window.Lumin) return resolve();
-    const s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/gh/luminsdk/script@latest/lumin.min.js';
-    s.onload = resolve;
-    s.onerror = () => reject(new Error('Lumin script failed'));
-    document.head.appendChild(s);
-  });
-
-  // 2) Create hidden container
-  const hiddenId = 'lumin-hidden-' + Date.now();
-  const hidden = document.createElement('div');
-  hidden.id = hiddenId;
-  hidden.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;overflow:hidden;visibility:hidden;';
-  document.body.appendChild(hidden);
-
-  // 3) Initialize Lumin in hidden container
-  if (!window.Lumin) {
-    document.body.removeChild(hidden);
-    return [];
-  }
-
-  window.Lumin.init({
-    container: '#' + hiddenId,
-    theme: 'dark'
-  });
-
-  // 4) Poll until games render (Lumin fetches its catalog asynchronously)
-  return new Promise((resolve) => {
-    let attempts = 0;
-    const maxAttempts = 60; // 6 seconds
-    const timer = setInterval(() => {
-      attempts++;
-      const container = document.getElementById(hiddenId);
-      if (!container) { clearInterval(timer); return resolve([]); }
-
-      // Try multiple selectors since Lumin's class names can change
-      const cards = container.querySelectorAll(
-        '[data-game], .lumin-game, [data-game-id], .game-card, [data-title], a[href]'
-      );
-
-      if (cards.length > 0 || attempts >= maxAttempts) {
-        clearInterval(timer);
-
-        const games = [];
-        cards.forEach((card, i) => {
-          // Try every possible attribute Lumin might use
-          const name = 
-            card.dataset.game || 
-            card.dataset.name || 
-            card.dataset.title || 
-            (card.querySelector('.game-title, .title, [data-name], h3, h4, .name')?.textContent.trim()) ||
-            card.textContent.trim().split('\n')[0];
-
-          const img = card.querySelector('img');
-          const image = 
-            card.dataset.image || 
-            card.dataset.thumbnail || 
-            (img ? img.src : '') || 
-            '';
-
-          const link = card.querySelector('a') || card.closest('a');
-          const url = 
-            card.dataset.url || 
-            card.dataset.src || 
-            card.dataset.link || 
-            (link ? link.href : '') || 
-            '';
-
-          if (name && name.length > 1 && url) {
-            games.push({ name, image, url });
-          }
-        });
-
-        // Cleanup hidden container after extraction
-        setTimeout(() => {
-          if (hidden.parentNode) hidden.parentNode.removeChild(hidden);
-        }, 100);
-
-        resolve(games);
-      }
-    }, 100);
-  });
-},
-
+            const responses = await Promise.race([fetchPromise, timeout]);
             
-            const games = responses
-              .filter((r) => r.status === "fulfilled")
-              .flatMap((r) => r.value);
+            const luminGames = responses[0].status === 'fulfilled' ? responses[0].value : [];
+            const mathGames  = (responses[1].status === 'fulfilled' && Array.isArray(responses[1].value)) 
+                               ? responses[1].value 
+                               : [];
 
-            return games.map((game, index) => ({
+            const normalizedMath = mathGames.map((g, i) => ({
+              ...g,
+              id: g.id || `math-${i}-${Date.now()}`,
+              name: g.name || g.title || 'Untitled',
+              image: g.image || g.thumbnail || g.icon || '',
+              url: g.url || g.link || '#',
+              proxy: g.proxy ?? false,
+              top: g.top ?? false,
+              new: g.new ?? false,
+              exp: g.exp ?? false,
+              updated: g.updated ?? false
+            }));
+
+            const normalizedLumin = luminGames.map((g, i) => ({
+              ...g,
+              id: g.id || `lumin-${i}-${Date.now()}`,
+              name: g.name || 'Untitled',
+              image: g.image || g.thumbnail || '',
+              url: g.url || '#',
+              proxy: true,
+              top: false,
+              new: i < 50,
+              exp: false,
+              updated: false
+            }));
+
+            const seen = new Set();
+            const merged = [];
+            for (const game of [...normalizedMath, ...normalizedLumin]) {
+              const key = game.name.toLowerCase();
+              if (!seen.has(key)) {
+                seen.add(key);
+                merged.push(game);
+              }
+            }
+
+            return merged.map((game, index) => ({
               ...game,
               id: game.id || `game-${index}-${Date.now()}`
             }));
           },
 
+          async loadLuminAndExtract() {
+            await new Promise((resolve, reject) => {
+              if (window.Lumin) return resolve();
+              const s = document.createElement('script');
+              s.src = 'https://cdn.jsdelivr.net/gh/luminsdk/script@latest/lumin.min.js';
+              s.onload = resolve;
+              s.onerror = () => reject(new Error('Lumin script failed'));
+              document.head.appendChild(s);
+            });
+
+            const hiddenId = 'lumin-hidden-' + Date.now();
+            const hidden = document.createElement('div');
+            hidden.id = hiddenId;
+            hidden.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;overflow:hidden;visibility:hidden;';
+            document.body.appendChild(hidden);
+
+            if (!window.Lumin) {
+              document.body.removeChild(hidden);
+              return [];
+            }
+
+            window.Lumin.init({
+              container: '#' + hiddenId,
+              theme: 'dark'
+            });
+
+            return new Promise((resolve) => {
+              let attempts = 0;
+              const maxAttempts = 60;
+              const timer = setInterval(() => {
+                attempts++;
+                const container = document.getElementById(hiddenId);
+                if (!container) { clearInterval(timer); return resolve([]); }
+
+                const cards = container.querySelectorAll(
+                  '[data-game], .lumin-game, [data-game-id], .game-card, [data-title], a[href]'
+                );
+
+                if (cards.length > 0 || attempts >= maxAttempts) {
+                  clearInterval(timer);
+
+                  const games = [];
+                  cards.forEach((card, i) => {
+                    const name = 
+                      card.dataset.game || 
+                      card.dataset.name || 
+                      card.dataset.title || 
+                      (card.querySelector('.game-title, .title, [data-name], h3, h4, .name')?.textContent.trim()) ||
+                      card.textContent.trim().split('\n')[0];
+
+                    const img = card.querySelector('img');
+                    const image = 
+                      card.dataset.image || 
+                      card.dataset.thumbnail || 
+                      (img ? img.src : '') || 
+                      '';
+
+                    const link = card.querySelector('a') || card.closest('a');
+                    const url = 
+                      card.dataset.url || 
+                      card.dataset.src || 
+                      card.dataset.link || 
+                      (link ? link.href : '') || 
+                      '';
+
+                    if (name && name.length > 1 && url) {
+                      games.push({ name, image, url });
+                    }
+                  });
+
+                  setTimeout(() => {
+                    if (hidden.parentNode) hidden.parentNode.removeChild(hidden);
+                  }, 100);
+
+                  resolve(games);
+                }
+              }, 100);
+            });
+          },
+
           setFilter(filter) {
+            // ... rest of your code stays the same
+
             this.activeFilter = filter;
             this.applyFilters();
           },
@@ -2635,4 +2620,4 @@ async loadLuminAndExtract() {
       }
     </script>
   </body>
-  </html>
+</html>
